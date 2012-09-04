@@ -1,0 +1,8 @@
+Gemfile.lock
+Makefile
+tmp/
+*.gem
+*.o
+*.so
+*~
+*#

@@ -4,6 +4,7 @@
 
 // Defining a space for information and references about the module to be stored internally
 VALUE IdZebra = Qnil;
+VALUE IdZebraNative = Qnil;
 
 // Prototype for the initialization method - Ruby calls this, not you
 void Init_idzebra();
@@ -14,7 +15,8 @@ VALUE method_test1(VALUE self);
 // The initialization method for this module
 void Init_idzebra() {
 	IdZebra = rb_define_module("IdZebra");
-	rb_define_method(IdZebra, "test1", method_test1, 0);
+	IdZebraNative = rb_define_module_under(IdZebra, "Native");
+	rb_define_method(IdZebraNative, "test1", method_test1, 0);
 }
 
 // Our 'test1' method.. it simply returns a value of '10' for now.
