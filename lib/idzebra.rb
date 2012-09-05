@@ -66,19 +66,36 @@ module IdZebra
       zebra_stop zs
     end
     
+    def log_level
+      extend Native
+      mask = yaz_log_mask_str('')
+      case mask
+      when yaz_log_mask_str('none,error')
+        :error
+      when yaz_log_mask_str('none,error,warn')
+        :warn
+      when yaz_log_mask_str('log')
+        :info
+      when yaz_log_mask_str('all')
+        :default
+      else
+        mask
+      end
+    end
+    
     def log_level=(log_level)
       extend Native
       case log_level
-      when :default
-        yaz_log_init_level(yaz_log_mask_str('default'))
+      when Numeric
+        yaz_log_init_level(log_level)
       when :error
         yaz_log_init_level(yaz_log_mask_str('none,error'))
       when :warn
         yaz_log_init_level(yaz_log_mask_str('none,error,warn'))
-      when :info
-        yaz_log_init_level(yaz_log_mask_str('default'))
-      when :debug
-        yaz_log_init_level(yaz_log_mask_str('debug'))
+      when :info, :default
+        yaz_log_init_level(yaz_log_mask_str('log'))
+      when :debug, :all
+        yaz_log_init_level(yaz_log_mask_str('all'))
       end
     end
     

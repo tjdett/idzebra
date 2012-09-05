@@ -4,11 +4,19 @@ require 'fileutils'
 describe "IdZebra" do
   
   it "should respond to :API" do
-    IdZebra.respond_to?(:API)
+    IdZebra.should respond_to(:API)
   end
   
-  it "should respond to :log_level=" do
-    IdZebra.respond_to?(:log_level=)
+  it "be able to set logging levels" do
+    IdZebra.log_level = :error
+    IdZebra.log_level.should == :error
+    IdZebra.log_level = :default
+    IdZebra.log_level.should == :info
+    # Set using numeric
+    IdZebra.log_level = 0x2000
+    IdZebra.log_level.should == :error
+    IdZebra.log_level = 0x2001
+    IdZebra.log_level.should == 0x2001
   end
     
   it "should allow creation and population of a repository " do
@@ -71,7 +79,7 @@ describe "IdZebra" do
         # Add some records
         zebra_add_record(zebra_handle, file_data, 0)
         zebra_commit(zebra_handle)
-        
+
         # Test compaction of records
         zebra_compact(zebra_handle)
         
