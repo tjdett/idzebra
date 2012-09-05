@@ -2,6 +2,7 @@ language: ruby
 before_install:
   - sudo apt-get install -qq idzebra-2.0 yaz
   - idzebra-config-2.0 --libs
+  - idzebra-config-2.0 --modules
 rvm:
   - 1.9.3
 script: bundle exec rspec
