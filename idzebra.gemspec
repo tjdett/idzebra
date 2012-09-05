@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.files       = Dir.glob('lib/**/*.rb') +
                   Dir.glob('ext/**/*.{c,h,rb}')
   s.extensions  = ['ext/idzebra/extconf.rb']
-  s.add_development_dependency 'rake-compiler'
+  s.add_dependency 'ffi'
+  s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
 end
