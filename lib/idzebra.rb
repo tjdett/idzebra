@@ -13,9 +13,9 @@ module IdZebra
       :action_a_delete ]
     
     ffi_lib_flags :now, :global
-    ffi_lib ['libyaz'],
-      ['libyaz_server'],
-      ['libidzebra-2.0', 'libidzebra']
+    ffi_lib ['yaz', 'libyaz.so.4'],
+      ['yaz_server', 'libyaz_server.so.4'],
+      ['idzebra-2.0', 'libidzebra-2.0.so.0']
       
     typedef :pointer, :zebra_handle
     typedef :pointer, :zebra_service
