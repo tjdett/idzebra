@@ -1,0 +1,9 @@
+language: ruby
+before_install:
+  - sudo apt-get install idzebra-2.0 
+rvm:
+  - 1.9.3
+script: bundle exec rspec
+notifications:
+  email: false
+
