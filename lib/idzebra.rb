@@ -35,8 +35,6 @@ module IdZebra
     attach_function :zebra_commit,  [:zebra_handle], :zebra_res
     attach_function :zebra_compact, [:zebra_handle], :zebra_res
     
-    attach_function :zebra_register_check, [:zebra_handle, :int], :zebra_res
-    
     attach_function :zebra_add_record, [
       :zebra_handle,
       :string,        # buf
