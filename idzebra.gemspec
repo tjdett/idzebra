@@ -8,6 +8,9 @@ Gem::Specification.new do |s|
   s.files       = Dir.glob('lib/**/*.rb') +
                   Dir.glob('ext/**/*.{c,h,rb}')
   s.extensions  = ['ext/idzebra/extconf.rb']
+  s.license     = 'Simplified BSD'
+  s.required_ruby_version = '>= 1.8.7'
+  s.requirements << 'idzebra-2.0'
   s.add_dependency 'ffi'
   s.add_development_dependency 'rake'
   s.add_development_dependency 'rspec'
