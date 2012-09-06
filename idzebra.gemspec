@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
                   Dir.glob('ext/**/*.{c,h,rb}')
   s.extensions  = ['ext/idzebra/extconf.rb']
   s.license     = 'Simplified BSD'
-  s.required_ruby_version = '>= 1.8.7'
+  s.required_ruby_version = '>= 1.9.1'
   s.requirements << 'idzebra-2.0'
   s.add_dependency 'ffi'
   s.add_development_dependency 'rake'

@@ -4,7 +4,6 @@ before_install:
   - idzebra-config-2.0 --libs
   - idzebra-config-2.0 --modules
 rvm:
-  - 1.8.7
   - 1.9.3
 script: bundle exec rspec
 notifications:
