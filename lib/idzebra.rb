@@ -35,6 +35,8 @@ module IdZebra
     attach_function :zebra_commit,  [:zebra_handle], :zebra_res
     attach_function :zebra_compact, [:zebra_handle], :zebra_res
     
+    attach_function :zebra_register_check, [:zebra_handle, :int], :zebra_res
+    
     attach_function :zebra_add_record, [
       :zebra_handle,
       :string,        # buf
@@ -133,7 +135,7 @@ module IdZebra
       zebra_update_record(zebra_handle, 
         :action_delete, nil, 0, nil, nil, record_str, 0)
     end
-    
+            
   end
   
 end

@@ -3,6 +3,46 @@ require 'fileutils'
 
 describe "IdZebra" do
   
+  def mute_log_output
+    begin
+      IdZebra::log_level = :error
+      yield
+    ensure
+      IdZebra::log_level = :default
+    end
+  end
+  
+  def run_server
+    begin
+      pid = fork do
+        # Replace forked process with our server
+        exec "zebrasrv -v none -f spec/config/yazserver.xml"
+      end
+      # Yield for block
+      yield
+    ensure
+      # Send kill signal
+      Process.kill "TERM", pid
+      # Wait for termination, otherwise it will become a zombie process
+      Process.wait pid
+    end
+  end
+  
+  def fetch_record_count
+    require 'open-uri'
+    uri = 'http://localhost:9999/'+
+      '?version=1.1&operation=searchRetrieve&query=rec.id%3E0'
+    begin
+      open(uri) do |f|
+        contents = f.read
+        count_re = /<zs:numberOfRecords>(\d+)<\/zs:numberOfRecords>/
+        contents =~ count_re ? $1.to_i : 0
+      end
+    rescue OpenURI::HTTPError => e
+      0
+    end
+  end
+  
   it "should respond to :API" do
     IdZebra.should respond_to(:API)
   end
@@ -22,16 +62,26 @@ describe "IdZebra" do
   it "should allow creation and population of a repository " do
     file_data = File.open('spec/fixtures/oaipmh_test_1.xml') {|f| f.read}
     begin
-      IdZebra::log_level = :error
-      IdZebra::API('spec/config/zebra.cfg') do |repo|
-        repo.init
-        repo.add_record(file_data)
-        repo.commit
-        repo.delete_record(file_data)
-        repo.commit
+      FileUtils.mkdir_p('tmp/zebra')
+      mute_log_output do
+        run_server do
+          IdZebra::API('spec/config/zebra.cfg') do |repo|
+            repo.init
+            fetch_record_count.should == 0
+            repo.add_record(file_data)
+            fetch_record_count.should == 0
+            repo.commit
+            fetch_record_count.should == 100
+            repo.delete_record(file_data)
+            fetch_record_count.should == 100
+            repo.commit
+            fetch_record_count.should == 0
+          end
+        end
       end
     ensure
       IdZebra::log_level = :default
+      FileUtils.rm_rf('tmp/zebra')
     end
   end
   
@@ -66,9 +116,8 @@ describe "IdZebra" do
     end
     
     it "should be have access to native methods" do
-      extend IdZebra::Native
-      begin
-        IdZebra::log_level = :error
+      mute_log_output do
+        extend IdZebra::Native
         zebra_service = zebra_start('spec/config/zebra.cfg')
         zebra_handle = zebra_open(zebra_service, nil)
         zebra_init(zebra_handle)
@@ -79,7 +128,7 @@ describe "IdZebra" do
         # Add some records
         zebra_add_record(zebra_handle, file_data, 0)
         zebra_commit(zebra_handle)
-
+            
         # Test compaction of records
         zebra_compact(zebra_handle)
         
@@ -91,8 +140,6 @@ describe "IdZebra" do
         # Close
         zebra_close(zebra_handle)
         zebra_stop(zebra_service)
-      ensure
-        IdZebra::log_level = :default
       end
     end
   end
