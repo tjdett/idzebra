@@ -1,8 +1,11 @@
 Gemfile.lock
 Makefile
+pkg/
 tmp/
 *.gem
 *.o
 *.so
 *~
 *#
+.buildpath
+.project
