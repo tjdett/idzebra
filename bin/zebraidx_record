@@ -1,0 +1,55 @@
+#!/usr/bin/env ruby
+
+require 'idzebra'
+require 'trollop'
+
+SUB_COMMANDS = %w(add delete)
+global_opts = Trollop::options do
+  banner "zebra <options> (add|remove) [file]"
+  opt :config, "Zebra config file",
+    :type => :string, :short => '-c', :required => true
+  opt :verbose, "Verbosity level", :type => :string, :short => "-v"
+  opt :commit, "Commit on completion", :default => false, :short => "-C"
+  stop_on SUB_COMMANDS
+end
+
+Trollop::die :config, "must exist" unless File.exist?(global_opts[:config])
+
+if global_opts[:verbose]
+  level = global_opts[:verbose]
+  level = level =~ /^0x/ ? level.to_i : level.to_sym
+  IdZebra::log_level = level
+end
+
+
+cmd = ARGV.shift # get the subcommand
+cmd_opts = case cmd
+  when "add" # parse delete options
+    Trollop::options do
+      # No cmd specific options
+    end
+  when "remove"  # parse copy options
+    Trollop::options do
+      # No cmd specific options
+    end
+  else
+    Trollop::die "unknown subcommand #{cmd.inspect}"
+  end
+
+file = ARGV.shift
+data = case file
+  when nil, '-'
+    STDIN.read
+  else
+    File.open(file) { |f| f.read}
+  end
+
+IdZebra::API(global_opts[:config]) do |repo|
+  case cmd
+    when "add"
+      repo.add_record(data)
+    when "remove"
+      repo.delete_record(data)
+  end
+  repo.commit if global_opts[:commit]
+end
