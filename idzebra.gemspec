@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'idzebra'
-  s.version     = '0.0.1'
+  s.version     = '0.1.0'
   s.date        = '2012-09-04'
   s.summary     = "Ruby bindings for IdZebra"
   s.description = "Ruby bindings for the Zebra open-source Z39.50/SRU server."
