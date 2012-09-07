@@ -33,9 +33,8 @@ describe "IdZebra" do
     # tests failing if the port is in use.
     #
     # Code largely based on code samples by Jordan Sissel of semicomplete.com
-    require 'net/protocol'
     require 'net/http'
-    sock = Net::BufferedIO.new(Socket.unix("tmp/zebra.sock"))
+    sock = Net::HTTP.socket_type.new(Socket.unix("tmp/zebra.sock"))
     begin
       request_path = '?version=1.1&operation=searchRetrieve&query=rec.id%3E0'
       request = Net::HTTP::Get.new(request_path)
