@@ -18,6 +18,11 @@ describe "IdZebra" do
         # Replace forked process with our server
         exec "zebrasrv -v none -f spec/config/yazserver.xml"
       end
+      # Wait up to one second for socket to be created
+      (0..20).each do
+        break if File.exists?('tmp/zebra.sock')
+        sleep 0.05
+      end
       # Yield for block
       yield
     ensure
