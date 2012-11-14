@@ -1,6 +1,8 @@
 Ruby bindings for IdZebra
 =========================
 
+[![Build Status](https://secure.travis-ci.org/tjdett/idzebra.png)](https://travis-ci.org/tjdett/idzebra) [![StillMaintained Status](http://stillmaintained.com/tjdett/idzebra.png)](http://stillmaintained.com/tjdett/idzebra)
+
 If you're looking for an open-source Z39.50/SRU server, then you'll probably be interested in Zebra.
 
 From <http://www.indexdata.com/zebra>:
