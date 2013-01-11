@@ -45,11 +45,13 @@ data = case file
   end
 
 IdZebra::API(global_opts[:config]) do |repo|
-  case cmd
-    when "add"
-      repo.add_record(data)
-    when "remove"
-      repo.delete_record(data)
+  repo.transaction do
+    case cmd
+      when "add"
+        repo.add_record(data)
+      when "remove"
+        repo.delete_record(data)
+    end
   end
   repo.commit if global_opts[:commit]
 end

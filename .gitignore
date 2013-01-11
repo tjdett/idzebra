@@ -9,3 +9,6 @@ tmp/
 *#
 .buildpath
 .project
+# Exclude YARD generated documentation
+/.yardoc
+/doc/

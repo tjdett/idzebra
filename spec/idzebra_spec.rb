@@ -65,14 +65,14 @@ describe "IdZebra" do
 
   it "be able to set logging levels" do
     IdZebra.log_level = :error
-    IdZebra.log_level.should == :error
+    IdZebra.log_level.should be == :error
     IdZebra.log_level = :default
-    IdZebra.log_level.should == :info
+    IdZebra.log_level.should be == :info
     # Set using numeric
     IdZebra.log_level = 0x2000
-    IdZebra.log_level.should == :error
+    IdZebra.log_level.should be == :error
     IdZebra.log_level = 0x2001
-    IdZebra.log_level.should == 0x2001
+    IdZebra.log_level.should be == 0x2001
   end
 
   it "should allow creation and population of a repository " do
@@ -83,15 +83,19 @@ describe "IdZebra" do
         run_server do
           IdZebra::API('spec/config/zebra.cfg') do |repo|
             repo.init
-            fetch_record_count.should == 0
-            repo.add_record(file_data)
-            fetch_record_count.should == 0
+            fetch_record_count.should be == 0
+            repo.transaction do
+              repo.add_record(file_data)
+            end
+            fetch_record_count.should be == 0
             repo.commit
-            fetch_record_count.should == 100
-            repo.delete_record(file_data)
-            fetch_record_count.should == 100
+            fetch_record_count.should be == 100
+            repo.transaction do
+              repo.delete_record(file_data)
+            end
+            fetch_record_count.should be == 100
             repo.commit
-            fetch_record_count.should == 0
+            fetch_record_count.should be == 0
           end
         end
       end
@@ -99,6 +103,101 @@ describe "IdZebra" do
       IdZebra::log_level = :default
       FileUtils.rm_rf('tmp/zebra')
     end
+  end
+
+  it "should properly return resources" do
+    begin
+      FileUtils.mkdir_p('tmp/zebra')
+      mute_log_output do
+        run_server do
+          IdZebra::API('spec/config/zebra.cfg') do |repo|
+            extend IdZebra::Native
+            repo.transaction do
+              repo.get_resource('profilePath').should be == '.:spec/config/tab'
+              repo.set_resource('profilePath', '.')
+              repo.get_resource('profilePath').should be == '.'
+            end
+            repo.get_resource('profilePath').should be == '.'
+          end
+          # Ensure array syntax works too
+          IdZebra::API('spec/config/zebra.cfg') do |repo|
+            extend IdZebra::Native
+            repo.transaction do
+              repo['profilePath'].should be == '.:spec/config/tab'
+              repo['profilePath'] = '.'
+              repo['profilePath'].should be == '.'
+            end
+          end
+        end
+      end
+    ensure
+      IdZebra::log_level = :default
+      FileUtils.rm_rf('tmp/zebra')
+    end
+  end
+
+  describe "zebraidx_record" do
+    def abs_from_here(path)
+      File.absolute_path(path, File.dirname(__FILE__))
+    end
+
+    let(:script)       { abs_from_here '../bin/zebraidx_record' }
+    let(:config_file)  { abs_from_here 'config/zebra.cfg' }
+    let(:test_file)    { abs_from_here 'fixtures/oaipmh_test_1.xml' }
+
+    before :each do
+      FileUtils.mkdir_p('tmp/zebra')
+    end
+
+    after :each do
+      FileUtils.rm_rf('tmp/zebra')
+    end
+
+    describe "add" do
+
+      it 'should load filter modules' do
+        output = `#{script} --config #{config_file} add #{test_file} 2>&1`
+        output.should match(/Loaded filter module/)
+      end
+
+      it 'should not commit by default' do
+        output = \
+          `#{script} -v info --config #{config_file} add #{test_file} 2>&1`
+        output.should match(%r{inserts/updates/deletions\: 14473/0/0})
+        output.should_not match(%r{\[zebraapi\] zebra_commit})
+      end
+
+      it 'should commit when --commit is specified' do
+        _, _, stderr = Open3.popen3 \
+          "#{script} -v debug --config #{config_file} --commit add #{test_file}"
+        output = stderr.read
+        output.should match(%r{inserts/updates/deletions\: 14473/0/0})
+        output.should match(%r{\[zebraapi\] zebra_commit})
+      end
+
+    end
+
+    describe "remove" do
+
+      it 'should load filter modules' do
+        output = `#{script} --config #{config_file} remove #{test_file} 2>&1`
+        output.should match(/Loaded filter module/)
+      end
+
+      it 'should report no changed records if none exist' do
+        output = `#{script} --config #{config_file} remove #{test_file} 2>&1`
+        output.should match(%r{Records: 0 i/u/d 0/0/0})
+      end
+
+      it 'should report removed data' do
+        `#{script} --commit --config #{config_file} add #{test_file} 2>&1`
+        output = \
+          `#{script} --commit --config #{config_file} remove #{test_file} 2>&1`
+        output.should match(%r{Records: 100 i/u/d 0/0/100})
+      end
+
+    end
+
   end
 
   describe "Repository" do
@@ -115,9 +214,11 @@ describe "IdZebra" do
       FileUtils.rm_rf('tmp/zebra')
     end
 
-    it { should respond_to(:init, :clean, :commit, :compact)}
+    it { should respond_to(:init, :clean, :commit, :compact) }
 
-    it { should respond_to(:add_record, :update_record, :delete_record)}
+    it { should respond_to(:add_record, :update_record, :delete_record) }
+
+    it { should respond_to(:get_resource, :set_resource) }
 
   end
 
