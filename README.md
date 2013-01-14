@@ -25,10 +25,14 @@ IdZebra::API('spec/config/zebra.cfg') do |repo|
   # Create a new repository with the provided config
   repo.init
   # Add some records
-  repo.add_record(file_data)
+  repo.transaction do
+    repo.add_record(file_data)
+  end
   repo.commit
   # Delete the records
-  repo.delete_record(file_data)
+  repo.transaction do
+    repo.delete_record(file_data)
+  end
   repo.commit
 end
 ```
